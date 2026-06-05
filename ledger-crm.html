@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ledger CRM — Lead Intelligence Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d0d0f;--bg2:#141416;--bg3:#1b1b20;--bg4:#22222a;--bg5:#2a2a34;
+  --brd:#252530;--brd2:#32323f;--brd3:#42424f;
+  --txt:#eae8f2;--txt2:#9a98aa;--txt3:#5c5a6a;--txt4:#3c3a48;
+  --gold:#c9a84c;--gold2:#e0bd6e;--gold3:#f5e0a0;
+  --teal:#1fa090;--teal2:#28c4b0;
+  --rose:#d4546a;--rose2:#ef7088;
+  --blue:#3a7fcc;--blue2:#5aa0f0;
+  --green:#2e9460;--green2:#42bc7e;
+  --amber:#cc8030;--amber2:#e8a050;
+  --purple:#7058cc;--purple2:#9078e8;
+  --r:8px;--r2:12px;--r3:18px;--r4:24px;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font-size:14px}
+h1,h2,h3,.serif{font-family:'DM Serif Display',serif;font-weight:400}
+button,input,select,textarea{font-family:'DM Sans',sans-serif}
+
+/* ── SCROLLBARS ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:2px}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes slideRight{from{transform:translateX(-18px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes slideInPanel{from{transform:translateX(32px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes scaleIn{from{transform:scale(.93);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes popIn{from{transform:scale(.82);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes barGrow{from{width:0}to{width:var(--w)}}
+@keyframes notifIn{from{transform:translateY(14px) scale(.95);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes shimmer{0%{opacity:.5}50%{opacity:1}100%{opacity:.5}}
+
+/* ─────────────────── LOGIN ─────────────────────────── */
+#login{
+  position:fixed;inset:0;z-index:9999;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  animation:fadeIn .4s ease;
+}
+.lc{
+  width:420px;padding:52px 44px;
+  background:var(--bg2);border:1px solid var(--brd2);border-radius:var(--r4);
+  animation:scaleIn .5s cubic-bezier(.34,1.4,.64,1);
+}
+.lc-brand{text-align:center;margin-bottom:36px}
+.lc-brand h1{font-size:34px;color:var(--gold2);letter-spacing:.5px}
+.lc-brand p{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--txt3);margin-top:6px}
+.lc-divider{width:40px;height:1px;background:var(--brd2);margin:14px auto}
+.lf{margin-bottom:18px}
+.lf label{display:block;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);margin-bottom:7px}
+.lf input{
+  width:100%;padding:12px 16px;
+  background:var(--bg3);border:1px solid var(--brd2);border-radius:var(--r);
+  color:var(--txt);font-size:13px;outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.lf input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.1)}
+.lb{
+  width:100%;padding:14px;margin-top:10px;
+  background:var(--gold);border:none;border-radius:var(--r);
+  color:#140e00;font-size:13px;font-weight:600;
+  cursor:pointer;letter-spacing:.5px;transition:opacity .15s,transform .1s;
+}
+.lb:hover{opacity:.88}
+.lb:active{transform:scale(.98)}
+.lhint{text-align:center;font-size:11px;color:var(--txt4);margin-top:14px}
+
+/* ─────────────────── APP SHELL ──────────────────────── */
+#app{display:none;height:100vh;flex-direction:column;overflow:hidden}
+#app.on{display:flex}
+
+/* ─────────────────── TOPBAR ─────────────────────────── */
+.topbar{
+  height:54px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;background:var(--bg2);border-bottom:1px solid var(--brd);
+  flex-shrink:0;z-index:50;
+}
+.tb-left{display:flex;align-items:center;gap:10px}
+.tb-logo{font-size:20px;color:var(--gold2)}
+.tb-badge{
+  font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  background:rgba(201,168,76,.1);color:var(--gold);
+  padding:2px 8px;border-radius:20px;border:1px solid rgba(201,168,76,.2);
+}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-btn{
+  padding:6px 14px;background:transparent;border:1px solid var(--brd2);border-radius:var(--r);
+  color:var(--txt2);font-size:12px;cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;gap:5px;
+}
+.tb-btn:hover{background:var(--bg3);color:var(--txt);border-color:var(--brd3)}
+.tb-avatar{
+  width:30px;height:30px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--teal2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:600;color:#0d0d0f;cursor:pointer;
+}
+
+/* ─────────────────── LAYOUT ─────────────────────────── */
+.body{display:flex;flex:1;overflow:hidden}
+
+/* ─────────────────── SIDEBAR ────────────────────────── */
+.sidebar{
+  width:60px;background:var(--bg2);border-right:1px solid var(--brd);
+  display:flex;flex-direction:column;align-items:center;
+  padding:16px 0;gap:3px;flex-shrink:0;
+}
+.snav{
+  width:40px;height:40px;border-radius:var(--r);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s;border:none;
+  background:transparent;color:var(--txt3);font-size:17px;position:relative;
+}
+.snav:hover{background:var(--bg4);color:var(--txt)}
+.snav.act{background:rgba(201,168,76,.14);color:var(--gold2)}
+.snav[title]:hover::after{
+  content:attr(title);
+  position:absolute;left:52px;top:50%;transform:translateY(-50%);
+  background:var(--bg4);border:1px solid var(--brd2);color:var(--txt);
+  font-size:11px;padding:4px 10px;border-radius:6px;
+  white-space:nowrap;pointer-events:none;z-index:999;
+}
+.s-sep{width:28px;height:1px;background:var(--brd);margin:6px 0}
+
+/* ─────────────────── CONTENT ────────────────────────── */
+.content{flex:1;display:flex;overflow:hidden}
+.panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* ─────────────────── PANEL HEADER ──────────────────── */
+.panel-head{
+  padding:16px 22px 14px;display:flex;align-items:center;
+  justify-content:space-between;border-bottom:1px solid var(--brd);
+  flex-shrink:0;background:var(--bg);
+}
+.panel-title{font-size:18px;color:var(--gold3)}
+.panel-actions{display:flex;align-items:center;gap:8px}
+
+/* ─────────────────── SEARCH ─────────────────────────── */
+.srch{position:relative}
+.srch input{
+  background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r);
+  padding:7px 10px 7px 30px;color:var(--txt);font-size:12px;
+  outline:none;width:180px;transition:border-color .2s,width .3s;
+}
+.srch input:focus{border-color:var(--gold);width:240px}
+.srch i{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--txt3);font-size:13px}
+
+/* ─────────────────── FILTER TABS ────────────────────── */
+.ftabs{
+  display:flex;padding:10px 22px;gap:4px;
+  border-bottom:1px solid var(--brd);flex-shrink:0;
+}
+.ftab{
+  padding:4px 12px;border-radius:20px;font-size:11px;
+  cursor:pointer;transition:all .2s;border:1px solid transparent;
+  color:var(--txt3);background:none;
+}
+.ftab:hover{background:var(--bg3);color:var(--txt2)}
+.ftab.act{background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.25);color:var(--gold2)}
+.ftab-count{
+  display:inline-block;background:rgba(255,255,255,.08);
+  border-radius:10px;padding:0 5px;font-size:10px;margin-left:3px;
+}
+
+/* ─────────────────── BULK BAR ───────────────────────── */
+.bulk-bar{
+  padding:8px 22px;background:rgba(201,168,76,.07);
+  border-bottom:1px solid rgba(201,168,76,.18);
+  display:flex;align-items:center;gap:8px;flex-shrink:0;
+  animation:slideUp .2s ease;
+}
+.bulk-count{font-size:12px;color:var(--gold2);font-weight:500}
+.bulk-btn{
+  padding:5px 12px;border-radius:var(--r);font-size:11px;cursor:pointer;
+  background:transparent;border:1px solid var(--brd2);color:var(--txt2);
+  transition:all .15s;display:flex;align-items:center;gap:4px;
+}
+.bulk-btn:hover{background:var(--bg3);color:var(--txt)}
+.bulk-btn.danger:hover{background:rgba(212,84,106,.1);border-color:rgba(212,84,106,.3);color:var(--rose2)}
+
+/* ─────────────────── LEADS LIST ─────────────────────── */
+.leads-scroll{flex:1;overflow-y:auto;padding:10px}
+.lc2{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:5px;
+  background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);
+  cursor:pointer;transition:all .22s cubic-bezier(.4,0,.2,1);
+  position:relative;overflow:hidden;animation:slideUp .3s ease both;
+}
+.lc2::after{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  border-radius:2px 0 0 2px;transition:background .2s;
+}
+.lc2.s-new::after{background:var(--blue2)}
+.lc2.s-contacted::after{background:var(--amber2)}
+.lc2.s-converted::after{background:var(--green2)}
+.lc2.s-lost::after{background:var(--rose2)}
+.lc2:hover{background:var(--bg3);border-color:var(--brd2);transform:translateX(2px)}
+.lc2.sel{background:var(--bg3);border-color:rgba(201,168,76,.4);box-shadow:0 0 0 1px rgba(201,168,76,.1)}
+.lc2.sel::after{background:var(--gold)!important}
+.lchk{
+  width:16px;height:16px;border:1px solid var(--brd2);border-radius:3px;
+  background:transparent;cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;font-size:10px;color:transparent;
+}
+.lchk.on{background:var(--gold);border-color:var(--gold);color:#1a1400}
+.la{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-family:'DM Serif Display',serif;
+}
+.li{flex:1;min-width:0}
+.ln{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lm{font-size:11px;color:var(--txt2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ltag{
+  font-size:9px;letter-spacing:.6px;text-transform:uppercase;
+  padding:2px 7px;border-radius:20px;font-weight:500;flex-shrink:0;
+}
+.tag-new{background:rgba(58,127,204,.15);color:var(--blue2);border:1px solid rgba(58,127,204,.2)}
+.tag-contacted{background:rgba(204,128,48,.15);color:var(--amber2);border:1px solid rgba(204,128,48,.2)}
+.tag-converted{background:rgba(46,148,96,.15);color:var(--green2);border:1px solid rgba(46,148,96,.2)}
+.tag-lost{background:rgba(212,84,106,.15);color:var(--rose2);border:1px solid rgba(212,84,106,.2)}
+.ldate{font-size:10px;color:var(--txt3);flex-shrink:0}
+
+/* ─────────────────── DETAIL PANEL ──────────────────── */
+.dp{
+  width:400px;background:var(--bg2);border-left:1px solid var(--brd);
+  display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;
+}
+.dp.open{animation:slideInPanel .3s cubic-bezier(.4,0,.2,1)}
+.dp-empty{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;height:100%;gap:10px;padding:32px;text-align:center;
+}
+.dp-empty-icon{font-size:42px;color:var(--txt4)}
+.dp-head{
+  padding:18px 20px 14px;border-bottom:1px solid var(--brd);
+  flex-shrink:0;display:flex;align-items:flex-start;gap:12px;
+}
+.dp-av{
+  width:48px;height:48px;border-radius:var(--r);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-family:'DM Serif Display',serif;
+}
+.dp-name{font-size:17px;color:var(--gold3)}
+.dp-email{font-size:11px;color:var(--blue2);margin-top:3px;cursor:pointer}
+.dp-email:hover{text-decoration:underline}
+.dp-body{flex:1;overflow-y:auto}
+.ds{padding:14px 20px;border-bottom:1px solid var(--brd)}
+.ds-label{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--txt3);margin-bottom:10px}
+
+/* ─────────────────── STATUS BUTTONS ────────────────── */
+.sbts{display:flex;gap:4px}
+.sbt{
+  flex:1;padding:7px 4px;border-radius:var(--r);font-size:10px;
+  cursor:pointer;transition:all .18s;border:1px solid var(--brd);
+  background:transparent;color:var(--txt3);letter-spacing:.3px;
+  display:flex;align-items:center;justify-content:center;gap:3px;
+}
+.sbt:hover{background:var(--bg4);color:var(--txt2)}
+.sbt.a-new{background:rgba(58,127,204,.18);border-color:rgba(58,127,204,.35);color:var(--blue2)}
+.sbt.a-contacted{background:rgba(204,128,48,.18);border-color:rgba(204,128,48,.35);color:var(--amber2)}
+.sbt.a-converted{background:rgba(46,148,96,.18);border-color:rgba(46,148,96,.35);color:var(--green2)}
+.sbt.a-lost{background:rgba(212,84,106,.18);border-color:rgba(212,84,106,.35);color:var(--rose2)}
+
+/* ─────────────────── INFO GRID ──────────────────────── */
+.igrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ii{background:var(--bg3);padding:9px 11px;border-radius:var(--r)}
+.ii-l{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);margin-bottom:3px}
+.ii-v{font-size:12px;font-weight:500}
+
+/* ─────────────────── NOTES ──────────────────────────── */
+.note{
+  background:var(--bg3);border-radius:var(--r);
+  padding:10px 12px;margin-bottom:7px;
+  border-left:3px solid var(--gold);animation:slideUp .25s ease;
+}
+.note.ai{border-left-color:var(--teal2)}
+.note.fu{border-left-color:var(--purple2)}
+.note-txt{font-size:12px;line-height:1.6}
+.note-meta{font-size:10px;color:var(--txt3);margin-top:5px;display:flex;justify-content:space-between;align-items:center}
+.aib{font-size:8px;letter-spacing:.8px;text-transform:uppercase;background:rgba(40,196,176,.1);color:var(--teal2);padding:1px 5px;border-radius:8px;border:1px solid rgba(40,196,176,.18)}
+.fub{font-size:8px;letter-spacing:.8px;text-transform:uppercase;background:rgba(112,88,204,.1);color:var(--purple2);padding:1px 5px;border-radius:8px;border:1px solid rgba(112,88,204,.18)}
+.note-del{cursor:pointer;color:var(--txt4);transition:color .15s;background:none;border:none;padding:0;font-size:13px}
+.note-del:hover{color:var(--rose2)}
+
+/* ─────────────────── NOTE INPUT ─────────────────────── */
+.ni-wrap{padding:14px 20px 18px;display:flex;flex-direction:column;gap:8px}
+.ni-tabs{display:flex;gap:4px;margin-bottom:2px}
+.ni-tab{
+  padding:4px 10px;border-radius:20px;font-size:10px;cursor:pointer;
+  border:1px solid var(--brd);background:transparent;color:var(--txt3);transition:all .15s;
+}
+.ni-tab.act{background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.25);color:var(--gold2)}
+.nita{
+  width:100%;padding:9px 11px;background:var(--bg3);
+  border:1px solid var(--brd);border-radius:var(--r);
+  color:var(--txt);font-size:12px;resize:none;outline:none;
+  transition:border-color .2s;line-height:1.5;
+}
+.nita:focus{border-color:var(--gold)}
+.ni-date{
+  padding:8px 10px;background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r);
+  color:var(--txt2);font-size:11px;outline:none;display:none;
+  color-scheme:dark;
+}
+.ni-date.show{display:block}
+.ni-date:focus{border-color:var(--purple2)}
+.ni-btns{display:flex;gap:6px}
+.bta{
+  flex:1;padding:8px 12px;background:var(--gold);border:none;border-radius:var(--r);
+  color:#140e00;font-size:11px;font-weight:600;cursor:pointer;
+  transition:opacity .15s;letter-spacing:.3px;
+}
+.bta:hover{opacity:.85}
+.btai{
+  padding:8px 12px;background:rgba(40,196,176,.1);
+  border:1px solid rgba(40,196,176,.28);border-radius:var(--r);
+  color:var(--teal2);font-size:11px;cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;gap:4px;
+}
+.btai:hover{background:rgba(40,196,176,.18)}
+.btai:disabled{opacity:.35;cursor:not-allowed}
+.spin{width:10px;height:10px;border:1.5px solid rgba(40,196,176,.25);border-top-color:var(--teal2);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
+
+/* ─────────────────── EMAIL COMPOSER ─────────────────── */
+.email-section{padding:14px 20px;border-bottom:1px solid var(--brd)}
+.btmail{
+  width:100%;padding:9px;background:rgba(58,127,204,.1);
+  border:1px solid rgba(58,127,204,.25);border-radius:var(--r);
+  color:var(--blue2);font-size:11px;cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.btmail:hover{background:rgba(58,127,204,.18)}
+.btmail:disabled{opacity:.4;cursor:not-allowed}
+.email-preview{
+  background:var(--bg3);border:1px solid var(--brd2);border-radius:var(--r);
+  padding:12px;margin-top:8px;display:none;animation:slideUp .25s ease;
+}
+.email-preview.show{display:block}
+.email-subj{font-size:11px;font-weight:500;color:var(--gold2);margin-bottom:6px}
+.email-body{font-size:11px;line-height:1.65;color:var(--txt2);white-space:pre-wrap}
+.email-actions{display:flex;gap:6px;margin-top:10px}
+.ea-btn{flex:1;padding:7px;border-radius:var(--r);font-size:10px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:4px}
+.ea-copy{background:var(--bg4);border:1px solid var(--brd2);color:var(--txt2)}
+.ea-copy:hover{background:var(--bg5);color:var(--txt)}
+.ea-regen{background:transparent;border:1px solid rgba(40,196,176,.25);color:var(--teal2)}
+.ea-regen:hover{background:rgba(40,196,176,.1)}
+
+/* ─────────────────── ADD LEAD MODAL ─────────────────── */
+#modal-bg{
+  position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.78);
+  display:none;align-items:center;justify-content:center;
+}
+#modal-bg.on{display:flex;animation:fadeIn .2s ease}
+.mc{
+  width:520px;max-height:88vh;overflow-y:auto;
+  background:var(--bg2);border:1px solid var(--brd2);border-radius:var(--r4);
+  padding:32px 36px;animation:scaleIn .3s cubic-bezier(.34,1.4,.64,1);
+}
+.mc-title{font-size:22px;color:var(--gold2);margin-bottom:22px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ff{margin-bottom:14px}
+.ff label{display:block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);margin-bottom:6px}
+.fi{
+  width:100%;padding:9px 12px;background:var(--bg3);
+  border:1px solid var(--brd2);border-radius:var(--r);
+  color:var(--txt);font-size:12px;outline:none;transition:border-color .2s;
+}
+.fi:focus{border-color:var(--gold)}
+.fsel{
+  width:100%;padding:9px 30px 9px 12px;
+  background:var(--bg3) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%235c5a6a' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat right 10px center;
+  border:1px solid var(--brd2);border-radius:var(--r);
+  color:var(--txt);font-size:12px;outline:none;appearance:none;cursor:pointer;
+  transition:border-color .2s;
+}
+.fsel:focus{border-color:var(--gold)}
+option{background:var(--bg3)}
+.mc-btns{display:flex;gap:8px;margin-top:8px}
+.mc-ok{
+  flex:1;padding:12px;background:var(--gold);border:none;border-radius:var(--r);
+  color:#140e00;font-size:12px;font-weight:600;cursor:pointer;
+  letter-spacing:.3px;transition:opacity .15s;
+}
+.mc-ok:hover{opacity:.85}
+.mc-cancel{
+  padding:12px 18px;background:transparent;border:1px solid var(--brd2);
+  border-radius:var(--r);color:var(--txt3);font-size:12px;cursor:pointer;transition:all .15s;
+}
+.mc-cancel:hover{background:var(--bg3);color:var(--txt2)}
+.btn-add{
+  display:flex;align-items:center;gap:5px;
+  padding:7px 14px;background:var(--gold);border:none;border-radius:var(--r);
+  color:#140e00;font-size:11px;font-weight:600;cursor:pointer;
+  letter-spacing:.4px;transition:opacity .15s;
+}
+.btn-add:hover{opacity:.85}
+
+/* ─────────────────── ANALYTICS ─────────────────────── */
+.analytics{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+.an-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.an-card{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);padding:16px;animation:slideUp .35s ease both}
+.an-card:nth-child(1){animation-delay:.05s}
+.an-card:nth-child(2){animation-delay:.10s}
+.an-card:nth-child(3){animation-delay:.15s}
+.an-card:nth-child(4){animation-delay:.20s}
+.an-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3)}
+.an-val{font-size:26px;font-family:'DM Serif Display',serif;margin:4px 0 2px}
+.an-sub{font-size:11px;color:var(--txt3)}
+.chart-card{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);padding:18px;animation:slideUp .4s ease both}
+.cc-title{font-size:13px;font-weight:500;color:var(--txt);margin-bottom:14px}
+.chart-2col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.bar-chart{display:flex;flex-direction:column;gap:8px}
+.bc-row{display:flex;align-items:center;gap:8px;animation:slideRight .35s ease both}
+.bc-label{font-size:11px;color:var(--txt2);width:88px;text-align:right;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bc-bar-wrap{flex:1;background:var(--bg4);border-radius:2px;height:8px;overflow:hidden}
+.bc-bar{height:8px;border-radius:2px;animation:barGrow .65s cubic-bezier(.4,0,.2,1) both}
+.bc-val{font-size:10px;color:var(--txt3);width:32px;text-align:right;flex-shrink:0}
+.donut-wrap{display:flex;align-items:center;gap:16px}
+.donut-legend{display:flex;flex-direction:column;gap:8px;flex:1}
+.dl-row{display:flex;align-items:center;gap:7px;font-size:11px}
+.dl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dl-name{color:var(--txt2);flex:1}
+.dl-pct{color:var(--txt);font-weight:500}
+
+/* ─────────────────── KANBAN ─────────────────────────── */
+.kanban{flex:1;display:flex;overflow-x:auto;padding:16px;gap:14px}
+.kol{width:230px;flex-shrink:0;display:flex;flex-direction:column;gap:8px}
+.kol-head{
+  padding:10px 12px;background:var(--bg2);border:1px solid var(--brd);
+  border-radius:var(--r2);display:flex;align-items:center;justify-content:space-between;
+}
+.kol-title{font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px}
+.kol-count{font-size:10px;background:var(--bg4);padding:1px 7px;border-radius:10px;color:var(--txt2)}
+.kcard{
+  padding:11px 13px;background:var(--bg2);border:1px solid var(--brd);
+  border-radius:var(--r);cursor:pointer;transition:all .2s;
+  animation:popIn .3s cubic-bezier(.34,1.4,.64,1) both;
+}
+.kcard:hover{background:var(--bg3);border-color:var(--brd2);transform:translateY(-2px)}
+.kcard-name{font-size:12px;font-weight:500;margin-bottom:3px;display:flex;align-items:center;gap:7px}
+.kcard-email{font-size:10px;color:var(--txt3)}
+.kcard-foot{font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--txt4);margin-top:7px;padding-top:7px;border-top:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between}
+
+/* ─────────────────── NOTIFICATION ──────────────────── */
+#notif{position:fixed;bottom:20px;right:20px;z-index:9999;display:none;max-width:300px}
+.notif-inner{
+  background:var(--bg3);border:1px solid var(--brd2);border-radius:var(--r2);
+  padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:12px;
+  animation:notifIn .35s cubic-bezier(.34,1.4,.64,1);
+}
+
+/* ─────────────────── EMPTY ──────────────────────────── */
+.empty{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:48px;text-align:center;
+  color:var(--txt3);animation:fadeIn .3s ease;
+}
+.empty i{font-size:36px;opacity:.25;margin-bottom:10px}
+
+/* ─────────────────── AI KEY BANNER ──────────────────── */
+.api-banner{
+  padding:8px 22px;background:rgba(201,168,76,.06);border-bottom:1px solid rgba(201,168,76,.15);
+  display:flex;align-items:center;gap:10px;font-size:11px;color:var(--txt3);flex-shrink:0;
+}
+.api-key-input{
+  flex:1;padding:5px 10px;background:var(--bg3);border:1px solid var(--brd2);
+  border-radius:var(--r);color:var(--txt);font-size:11px;outline:none;
+  transition:border-color .2s;max-width:380px;
+}
+.api-key-input:focus{border-color:var(--gold)}
+.api-save-btn{
+  padding:5px 12px;background:var(--gold);border:none;border-radius:var(--r);
+  color:#140e00;font-size:10px;font-weight:600;cursor:pointer;letter-spacing:.3px;
+}
+.api-key-status{font-size:11px}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ───────────────────────────────────────────── -->
+<div id="login">
+  <div class="lc">
+    <div class="lc-brand">
+      <h1>Ledger CRM</h1>
+      <div class="lc-divider"></div>
+      <p>Lead Intelligence Platform</p>
+    </div>
+    <div class="lf">
+      <label>Username</label>
+      <input id="lu" value="admin" placeholder="admin">
+    </div>
+    <div class="lf">
+      <label>Password</label>
+      <input id="lp" type="password" value="admin123" placeholder="••••••••">
+    </div>
+    <button class="lb" onclick="doLogin()">Sign In to Dashboard</button>
+    <p class="lhint">Demo credentials: admin / admin123</p>
+  </div>
+</div>
+
+<!-- ── APP ─────────────────────────────────────────────── -->
+<div id="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tb-left">
+      <h1 class="tb-logo">Ledger CRM</h1>
+      <span class="tb-badge">Pro</span>
+    </div>
+    <div class="tb-right">
+      <button class="tb-btn" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> Export CSV</button>
+      <button class="tb-btn" onclick="openModal()"><i class="ti ti-plus" aria-hidden="true"></i> New Lead</button>
+      <div class="tb-avatar" title="Admin">A</div>
+      <button class="tb-btn" onclick="doLogout()" title="Sign out"><i class="ti ti-logout" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <!-- API KEY BANNER -->
+  <div class="api-banner" id="api-banner">
+    <i class="ti ti-key" style="color:var(--gold);font-size:13px" aria-hidden="true"></i>
+    <span>Anthropic API key for AI features:</span>
+    <input class="api-key-input" id="api-key-input" type="password" placeholder="sk-ant-...  (paste your key to enable AI notes & email composer)">
+    <button class="api-save-btn" onclick="saveApiKey()">Save Key</button>
+    <span class="api-key-status" id="api-status"></span>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <button class="snav act" title="Leads" onclick="setView('leads',this)"><i class="ti ti-users" aria-hidden="true"></i></button>
+      <button class="snav" title="Pipeline" onclick="setView('pipeline',this)"><i class="ti ti-layout-columns" aria-hidden="true"></i></button>
+      <button class="snav" title="Analytics" onclick="setView('analytics',this)"><i class="ti ti-chart-bar" aria-hidden="true"></i></button>
+      <div class="s-sep"></div>
+      <button class="snav" title="New Lead" onclick="openModal()"><i class="ti ti-plus" aria-hidden="true"></i></button>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<!-- ── ADD LEAD MODAL ──────────────────────────────────── -->
+<div id="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div class="mc">
+    <h2 class="mc-title">Add New Lead</h2>
+    <div class="frow">
+      <div class="ff"><label>First Name *</label><input class="fi" id="mfn" placeholder="Jane"></div>
+      <div class="ff"><label>Last Name</label><input class="fi" id="mln" placeholder="Doe"></div>
+    </div>
+    <div class="ff"><label>Email Address *</label><input class="fi" id="mem" type="email" placeholder="jane@company.com"></div>
+    <div class="frow">
+      <div class="ff"><label>Phone</label><input class="fi" id="mph" placeholder="+1 (555) 000-0000"></div>
+      <div class="ff"><label>Company</label><input class="fi" id="mco" placeholder="Acme Corp"></div>
+    </div>
+    <div class="frow">
+      <div class="ff">
+        <label>Lead Source</label>
+        <select class="fsel" id="msr">
+          <option>Contact Form</option><option>Live Chat</option><option>Referral</option>
+          <option>LinkedIn</option><option>Google Ads</option><option>Cold Outreach</option><option>Event</option>
+        </select>
+      </div>
+      <div class="ff"><label>Deal Value ($)</label><input class="fi" id="mdv" type="number" placeholder="0" min="0"></div>
+    </div>
+    <div class="ff">
+      <label>Initial Note</label>
+      <textarea class="fi nita" id="mnt" rows="2" placeholder="First impression or context..."></textarea>
+    </div>
+    <div class="mc-btns">
+      <button class="mc-cancel" onclick="closeModal()">Cancel</button>
+      <button class="mc-ok" onclick="saveLead()">Add Lead →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── NOTIFICATION ────────────────────────────────────── -->
+<div id="notif"><div class="notif-inner" id="notif-inner"></div></div>
+
+<!-- ─────────────────────── SCRIPTS ──────────────────────── -->
+<script>
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+const COLORS = ['#c9a84c','#3a7fcc','#28c4b0','#d4546a','#2e9460','#cc8030','#7058cc'];
+function gc(s){let h=0;for(let c of s)h=c.charCodeAt(0)+((h<<5)-h);return COLORS[Math.abs(h)%COLORS.length]}
+function ini(l){return((l.fn||'?')[0]+((l.ln||'')[0]||'')).toUpperCase()}
+function uid(){return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function fmt(d){return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+function fmtS(s){return{new:'New',contacted:'Contacted',converted:'Converted',lost:'Lost'}[s]||s}
+
+let leads = [
+  {id:'l1',fn:'Sophia',ln:'Marchetti',em:'sophia@marchetti.io',ph:'+1 415 882-3310',co:'Marchetti Design',src:'Contact Form',status:'contacted',date:'2025-05-20',val:8500,notes:[{id:'n1',txt:'Interested in enterprise plan. Needs demo by end of month.',date:'2025-05-21',ai:false,fu:false}]},
+  {id:'l2',fn:'James',ln:'Okafor',em:'james@techfirm.io',ph:'+1 212 775-4490',co:'TechFirm Inc.',src:'Referral',status:'new',date:'2025-05-22',val:12000,notes:[]},
+  {id:'l3',fn:'Ren',ln:'Nakamura',em:'ren@creativestudio.jp',ph:'',co:'Creative Studio',src:'LinkedIn',status:'new',date:'2025-05-24',val:3200,notes:[{id:'n2',txt:'Found us through LinkedIn. Looking for branding services.',date:'2025-05-24',ai:false,fu:false}]},
+  {id:'l4',fn:'Priya',ln:'Sharma',em:'priya@apex.co',ph:'+44 207 946-0958',co:'Apex Solutions',src:'Google Ads',status:'converted',date:'2025-05-10',val:22000,notes:[{id:'n3',txt:'Signed 12-month contract. Onboarding next Tuesday.',date:'2025-05-15',ai:false,fu:false},{id:'n4',txt:'High engagement across all touchpoints. Recommend upsell on Q3 renewal.',date:'2025-05-12',ai:true,fu:false}]},
+  {id:'l5',fn:'Marco',ln:'de Vries',em:'marco@devries.nl',ph:'+31 20 123-4567',co:'de Vries Ventures',src:'Event',status:'contacted',date:'2025-05-18',val:6000,notes:[{id:'n5',txt:'Met at SaaS Summit. Very interested in analytics features.',date:'2025-05-18',ai:false,fu:false}]},
+  {id:'l6',fn:'Amara',ln:'Diallo',em:'amara@lightwave.africa',ph:'',co:'Lightwave Africa',src:'Contact Form',status:'new',date:'2025-05-28',val:4500,notes:[]},
+  {id:'l7',fn:'Elena',ln:'Vasquez',em:'elena@innovate.mx',ph:'+52 55 9876-5432',co:'Innovate MX',src:'Cold Outreach',status:'converted',date:'2025-04-30',val:18000,notes:[{id:'n6',txt:'Follow-up: product review on June 15.',date:'2025-05-01',ai:false,fu:true,fuDate:'2025-06-15'}]},
+  {id:'l8',fn:'Luca',ln:'Bianchi',em:'luca@studio-b.it',ph:'+39 02 1234-5678',co:'Studio B',src:'Referral',status:'lost',date:'2025-05-05',val:2000,notes:[{id:'n7',txt:'Went with competitor. Budget constraints cited.',date:'2025-05-10',ai:false,fu:false}]},
+];
+
+let selId=null, filterS='all', searchQ='', selectedIds=new Set();
+let curView='leads', noteMode='note';
+let chartInst={};
+let apiKey = localStorage.getItem('crm_api_key')||'';
+
+// ══════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════
+function doLogin(){
+  const u=document.getElementById('lu').value;
+  const p=document.getElementById('lp').value;
+  if(u==='admin'&&p==='admin123'){
+    const el=document.getElementById('login');
+    el.style.transition='opacity .35s';
+    el.style.opacity=0;
+    setTimeout(()=>{
+      el.style.display='none';
+      document.getElementById('app').classList.add('on');
+      updateApiStatus();
+      renderView();
+    },350);
+  } else {
+    showNotif('Incorrect credentials — try admin / admin123','#d4546a');
+  }
+}
+document.getElementById('lp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+
+function doLogout(){
+  selId=null; selectedIds.clear();
+  document.getElementById('app').classList.remove('on');
+  const el=document.getElementById('login');
+  el.style.display='flex'; el.style.opacity=1;
+}
+
+// ══════════════════════════════════════════
+//  API KEY
+// ══════════════════════════════════════════
+function saveApiKey(){
+  const k=document.getElementById('api-key-input').value.trim();
+  if(!k){showNotif('Please paste your API key first','#cc8030');return}
+  apiKey=k; localStorage.setItem('crm_api_key',k); updateApiStatus();
+  showNotif('API key saved — AI features enabled!','#28c4b0');
+}
+function updateApiStatus(){
+  const el=document.getElementById('api-status');
+  const inp=document.getElementById('api-key-input');
+  if(!el||!inp)return;
+  if(apiKey){
+    el.textContent='✓ Key saved'; el.style.color='var(--green2)';
+    inp.value=''; inp.placeholder='Key saved — paste a new one to update';
+  } else {
+    el.textContent=''; inp.placeholder='sk-ant-...  (paste your key to enable AI features)';
+  }
+}
+
+// ══════════════════════════════════════════
+//  VIEW ROUTING
+// ══════════════════════════════════════════
+function setView(v,btn){
+  curView=v;
+  document.querySelectorAll('.snav').forEach(b=>b.classList.remove('act'));
+  btn.classList.add('act');
+  renderView();
+}
+function renderView(){
+  const c=document.getElementById('content');
+  if(!c)return;
+  if(curView==='leads') renderLeadsView(c);
+  else if(curView==='analytics') renderAnalyticsView(c);
+  else if(curView==='pipeline') renderPipelineView(c);
+}
+
+// ══════════════════════════════════════════
+//  LEADS VIEW
+// ══════════════════════════════════════════
+function renderLeadsView(c){
+  const cnt=s=>leads.filter(l=>l.status===s).length;
+  c.innerHTML=`
+    <div class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Client Leads</h2>
+        <div class="panel-actions">
+          <div class="srch">
+            <i class="ti ti-search" aria-hidden="true"></i>
+            <input id="si" type="text" placeholder="Search leads…" oninput="searchQ=this.value;renderList()" value="${searchQ}">
+          </div>
+          <button class="btn-add" onclick="openModal()">
+            <i class="ti ti-plus" aria-hidden="true" style="font-size:12px"></i>New Lead
+          </button>
+        </div>
+      </div>
+      <div id="bulk-slot"></div>
+      <div class="ftabs">
+        <button class="ftab${filterS==='all'?' act':''}" onclick="setF('all',this)">All<span class="ftab-count">${leads.length}</span></button>
+        <button class="ftab${filterS==='new'?' act':''}" onclick="setF('new',this)">New<span class="ftab-count">${cnt('new')}</span></button>
+        <button class="ftab${filterS==='contacted'?' act':''}" onclick="setF('contacted',this)">Contacted<span class="ftab-count">${cnt('contacted')}</span></button>
+        <button class="ftab${filterS==='converted'?' act':''}" onclick="setF('converted',this)">Converted<span class="ftab-count">${cnt('converted')}</span></button>
+        <button class="ftab${filterS==='lost'?' act':''}" onclick="setF('lost',this)">Lost<span class="ftab-count">${cnt('lost')}</span></button>
+      </div>
+      <div class="leads-scroll" id="lead-list"></div>
+    </div>
+    <div class="dp" id="dp">
+      <div class="dp-empty">
+        <div class="dp-empty-icon"><i class="ti ti-user-circle" aria-hidden="true"></i></div>
+        <div style="font-size:14px;color:var(--txt2);margin-top:6px">Select a lead</div>
+        <div style="font-size:12px;color:var(--txt3);margin-top:4px">View details, manage notes &amp;<br>compose AI follow-up emails</div>
+      </div>
+    </div>`;
+  renderList();
+  if(selId) setTimeout(()=>showDetail(selId),60);
+}
+
+function getFiltered(){
+  return leads.filter(l=>{
+    const ms = filterS==='all' || l.status===filterS;
+    const q  = searchQ.toLowerCase();
+    const mq = !q || `${l.fn} ${l.ln} ${l.em} ${l.co||''} ${l.src}`.toLowerCase().includes(q);
+    return ms && mq;
+  });
+}
+
+function renderList(){
+  const lst=document.getElementById('lead-list');
+  if(!lst)return;
+  const fl=getFiltered();
+  renderBulkBar();
+  if(!fl.length){
+    lst.innerHTML=`<div class="empty"><i class="ti ti-inbox" aria-hidden="true"></i><div>No leads found</div><div style="font-size:11px;margin-top:4px">Adjust filters or search</div></div>`;
+    return;
+  }
+  lst.innerHTML=fl.map((l,i)=>`
+    <div class="lc2 s-${l.status}${selId===l.id?' sel':''}" onclick="selectLead('${l.id}')" style="animation-delay:${i*.03}s">
+      <div class="lchk${selectedIds.has(l.id)?' on':''}" onclick="event.stopPropagation();toggleSel('${l.id}')">${selectedIds.has(l.id)?'✓':''}</div>
+      <div class="la" style="background:${gc(l.fn)}1a;color:${gc(l.fn)}">${ini(l)}</div>
+      <div class="li">
+        <div class="ln">${l.fn} ${l.ln}</div>
+        <div class="lm">${l.em}${l.co?` · ${l.co}`:''}</div>
+        <div style="font-size:9px;color:var(--txt4);letter-spacing:.5px;text-transform:uppercase;margin-top:2px">${l.src}${l.val?` · $${l.val.toLocaleString()}`:''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+        <span class="ltag tag-${l.status}">${fmtS(l.status)}</span>
+        <span class="ldate">${fmt(l.date)}</span>
+        ${l.notes.length?`<span style="font-size:10px;color:var(--txt3);display:flex;align-items:center;gap:2px"><i class="ti ti-notes" style="font-size:10px" aria-hidden="true"></i>${l.notes.length}</span>`:''}
+      </div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+//  BULK ACTIONS
+// ══════════════════════════════════════════
+function toggleSel(id){
+  if(selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id);
+  renderList();
+}
+function renderBulkBar(){
+  const el=document.getElementById('bulk-slot');
+  if(!el)return;
+  if(!selectedIds.size){el.innerHTML='';return}
+  el.innerHTML=`<div class="bulk-bar">
+    <span class="bulk-count">${selectedIds.size} selected</span>
+    <button class="bulk-btn" onclick="bulkSt('contacted')"><i class="ti ti-phone" style="font-size:11px" aria-hidden="true"></i>Mark Contacted</button>
+    <button class="bulk-btn" onclick="bulkSt('converted')"><i class="ti ti-check" style="font-size:11px" aria-hidden="true"></i>Mark Converted</button>
+    <button class="bulk-btn danger" onclick="bulkDel()"><i class="ti ti-trash" style="font-size:11px" aria-hidden="true"></i>Delete</button>
+    <button class="bulk-btn" style="margin-left:auto" onclick="selectedIds.clear();renderList()"><i class="ti ti-x" style="font-size:11px" aria-hidden="true"></i>Clear</button>
+  </div>`;
+}
+function bulkSt(s){
+  const n=selectedIds.size;
+  selectedIds.forEach(id=>{const l=leads.find(x=>x.id===id);if(l)l.status=s});
+  selectedIds.clear(); renderView();
+  showNotif(`${n} lead${n>1?'s':''} marked as ${fmtS(s)}`,'#2e9460');
+}
+function bulkDel(){
+  const n=selectedIds.size;
+  leads=leads.filter(l=>!selectedIds.has(l.id));
+  if(selId&&!leads.find(x=>x.id===selId)) selId=null;
+  selectedIds.clear(); renderView();
+  showNotif(`${n} lead${n>1?'s':''} deleted`,'#d4546a');
+}
+
+// ══════════════════════════════════════════
+//  DETAIL PANEL
+// ══════════════════════════════════════════
+function selectLead(id){selId=id;renderList();showDetail(id)}
+
+function showDetail(id){
+  const dp=document.getElementById('dp');
+  if(!dp)return;
+  const l=leads.find(x=>x.id===id);
+  if(!l)return;
+  dp.classList.add('open');
+  dp.innerHTML=`
+    <div class="dp-head">
+      <div class="dp-av" style="background:${gc(l.fn)}1a;color:${gc(l.fn)}">${ini(l)}</div>
+      <div style="flex:1;min-width:0">
+        <div class="dp-name">${l.fn} ${l.ln}</div>
+        <div class="dp-email" onclick="navigator.clipboard?.writeText('${l.em}')">${l.em}</div>
+        ${l.co?`<div style="font-size:11px;color:var(--txt2);margin-top:2px">${l.co}</div>`:''}
+        ${l.val?`<div style="font-size:11px;color:var(--green2);margin-top:3px;font-weight:500">$${l.val.toLocaleString()} deal value</div>`:''}
+      </div>
+      <button onclick="selId=null;renderView()" style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:18px;padding:0;flex-shrink:0" aria-label="Close panel">
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="dp-body">
+      <div class="ds">
+        <div class="ds-label">Pipeline Status</div>
+        <div class="sbts">
+          <button class="sbt${l.status==='new'?' a-new':''}" onclick="updSt('${l.id}','new')"><i class="ti ti-circle" style="font-size:9px" aria-hidden="true"></i>New</button>
+          <button class="sbt${l.status==='contacted'?' a-contacted':''}" onclick="updSt('${l.id}','contacted')"><i class="ti ti-phone" style="font-size:9px" aria-hidden="true"></i>Contacted</button>
+          <button class="sbt${l.status==='converted'?' a-converted':''}" onclick="updSt('${l.id}','converted')"><i class="ti ti-check" style="font-size:9px" aria-hidden="true"></i>Converted</button>
+          <button class="sbt${l.status==='lost'?' a-lost':''}" onclick="updSt('${l.id}','lost')"><i class="ti ti-x" style="font-size:9px" aria-hidden="true"></i>Lost</button>
+        </div>
+      </div>
+      <div class="ds">
+        <div class="ds-label">Contact Details</div>
+        <div class="igrid">
+          <div class="ii"><div class="ii-l">Source</div><div class="ii-v" style="color:var(--gold2)">${l.src}</div></div>
+          <div class="ii"><div class="ii-l">Added</div><div class="ii-v">${fmt(l.date)}</div></div>
+          ${l.ph?`<div class="ii"><div class="ii-l">Phone</div><div class="ii-v">${l.ph}</div></div>`:''}
+          <div class="ii"><div class="ii-l">Deal Value</div><div class="ii-v" style="color:var(--green2)">$${(l.val||0).toLocaleString()}</div></div>
+        </div>
+      </div>
+      <div class="ds">
+        <div class="ds-label">Notes &amp; Follow-ups</div>
+        <div id="notes-${l.id}">${buildNotes(l)}</div>
+      </div>
+      <div class="email-section">
+        <div class="ds-label" style="margin-bottom:8px">AI Email Composer</div>
+        <button class="btmail" id="ebtn-${l.id}" onclick="composeEmail('${l.id}')">
+          <i class="ti ti-mail" style="font-size:12px" aria-hidden="true"></i>Generate follow-up email
+        </button>
+        <div class="email-preview" id="epreview-${l.id}"></div>
+      </div>
+      <div class="ni-wrap">
+        <div class="ds-label">Add Note</div>
+        <div class="ni-tabs">
+          <button class="ni-tab${noteMode==='note'?' act':''}" onclick="setNM('note','${l.id}')">
+            <i class="ti ti-notes" style="font-size:10px" aria-hidden="true"></i> Note
+          </button>
+          <button class="ni-tab${noteMode==='fu'?' act':''}" onclick="setNM('fu','${l.id}')">
+            <i class="ti ti-calendar" style="font-size:10px" aria-hidden="true"></i> Follow-up
+          </button>
+        </div>
+        <textarea class="nita" id="ni-${l.id}" rows="3" placeholder="${noteMode==='fu'?'Schedule a follow-up action…':'Write a note or observation…'}"></textarea>
+        <input class="ni-date${noteMode==='fu'?' show':''}" id="nd-${l.id}" type="date" value="${new Date().toISOString().split('T')[0]}">
+        <div class="ni-btns">
+          <button class="bta" onclick="addNote('${l.id}')">
+            <i class="ti ti-notes" style="font-size:11px" aria-hidden="true"></i> Save ${noteMode==='fu'?'Follow-up':'Note'}
+          </button>
+          <button class="btai" id="aibtn-${l.id}" onclick="aiNote('${l.id}')">
+            <i class="ti ti-sparkles" style="font-size:11px" aria-hidden="true"></i> AI Suggest
+          </button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function buildNotes(l){
+  if(!l.notes.length) return `<div style="font-size:11px;color:var(--txt3);padding:6px 0">No notes yet. Add one below.</div>`;
+  return l.notes.map(n=>`
+    <div class="note${n.ai?' ai':''}${n.fu?' fu':''}">
+      <div class="note-txt">${n.txt}</div>
+      <div class="note-meta">
+        <span>${n.ai?'<span class="aib">AI</span> ':n.fu?'<span class="fub">Follow-up</span> ':''}${n.fuDate?`📅 ${fmt(n.fuDate)} &middot; `:''}${fmt(n.date)}</span>
+        <button class="note-del" onclick="delNote('${l.id}','${n.id}')" aria-label="Delete note"><i class="ti ti-trash" aria-hidden="true"></i></button>
+      </div>
+    </div>`).join('');
+}
+
+function setNM(m,id){noteMode=m;showDetail(id)}
+
+// ══════════════════════════════════════════
+//  STATUS UPDATE
+// ══════════════════════════════════════════
+function updSt(id,s){
+  const l=leads.find(x=>x.id===id);
+  if(!l)return;
+  l.status=s;
+  renderList();
+  showDetail(id);
+  showNotif(`Status updated → ${fmtS(s)}`,'#c9a84c');
+}
+
+// ══════════════════════════════════════════
+//  NOTES
+// ══════════════════════════════════════════
+function addNote(id){
+  const l=leads.find(x=>x.id===id);
+  const inp=document.getElementById(`ni-${id}`);
+  const txt=inp.value.trim();
+  if(!txt)return;
+  const isFu=noteMode==='fu';
+  const fuDate=isFu?(document.getElementById(`nd-${id}`)?.value||null):null;
+  l.notes.unshift({id:uid(),txt,date:new Date().toISOString().split('T')[0],ai:false,fu:isFu,fuDate});
+  inp.value='';
+  refreshNotes(l);
+  showNotif(isFu?'Follow-up scheduled':'Note saved','#c9a84c');
+}
+function delNote(lid,nid){
+  const l=leads.find(x=>x.id===lid);
+  l.notes=l.notes.filter(n=>n.id!==nid);
+  refreshNotes(l);
+  showNotif('Note deleted','#9a98aa');
+}
+function refreshNotes(l){
+  const el=document.getElementById(`notes-${l.id}`);
+  if(el) el.innerHTML=buildNotes(l);
+}
+
+// ══════════════════════════════════════════
+//  AI NOTE
+// ══════════════════════════════════════════
+async function aiNote(id){
+  if(!apiKey){showNotif('Paste your Anthropic API key in the banner above','#cc8030');return}
+  const l=leads.find(x=>x.id===id);
+  const btn=document.getElementById(`aibtn-${id}`);
+  if(!btn||btn.disabled)return;
+  btn.disabled=true;
+  btn.innerHTML=`<span class="spin"></span> Thinking…`;
+  const ctx=`Lead: ${l.fn} ${l.ln}, Email: ${l.em}, Company: ${l.co||'N/A'}, Source: ${l.src}, Status: ${l.status}, Deal: $${l.val||0}. Notes: ${l.notes.filter(n=>!n.ai).map(n=>n.txt).join('; ')||'None'}`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,system:'You are a CRM sales assistant. Generate a concise, specific, actionable follow-up insight for a lead in 1-2 sentences. Be direct. No preamble.',messages:[{role:'user',content:`Follow-up note for:\n${ctx}`}]})
+    });
+    const d=await r.json();
+    const txt=d.content?.[0]?.text||'Consider scheduling a discovery call to understand their specific needs and timeline.';
+    l.notes.unshift({id:uid(),txt,date:new Date().toISOString().split('T')[0],ai:true,fu:false});
+    refreshNotes(l);
+    showNotif('AI note generated','#28c4b0');
+  }catch(e){
+    showNotif('AI request failed — check your API key','#d4546a');
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML=`<i class="ti ti-sparkles" style="font-size:11px" aria-hidden="true"></i> AI Suggest`;
+  }
+}
+
+// ══════════════════════════════════════════
+//  AI EMAIL COMPOSER
+// ══════════════════════════════════════════
+async function composeEmail(id){
+  if(!apiKey){showNotif('Paste your Anthropic API key in the banner above','#cc8030');return}
+  const l=leads.find(x=>x.id===id);
+  const btn=document.getElementById(`ebtn-${id}`);
+  const preview=document.getElementById(`epreview-${id}`);
+  if(!btn||!preview)return;
+  btn.disabled=true;
+  preview.classList.add('show');
+  preview.innerHTML=`<div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--txt3);padding:8px 0"><span class="spin"></span>Composing email…</div>`;
+  const ctx=`Lead: ${l.fn} ${l.ln}, Email: ${l.em}, Company: ${l.co||'N/A'}, Status: ${l.status}, Source: ${l.src}, Deal: $${l.val||0}. Notes: ${l.notes.map(n=>n.txt).join('; ')||'None'}`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,system:'You are a professional sales email writer. Write a concise, warm, personalized follow-up email. Return ONLY a JSON object with keys "subject" (string) and "body" (string). No markdown fences, no extra text.',messages:[{role:'user',content:`Write follow-up email for:\n${ctx}`}]})
+    });
+    const d=await r.json();
+    let raw=(d.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim();
+    let email={subject:`Following up — ${l.co||l.fn+' '+l.ln}`,body:`Hi ${l.fn},\n\nThank you for your interest. I'd love to connect and explore how we can help ${l.co||'your team'}.\n\nBest regards,\nAdmin`};
+    try{email=JSON.parse(raw)}catch(e){}
+    const safeBody=email.body.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const rawBody=email.body;
+    preview.innerHTML=`
+      <div class="email-subj">Subject: ${email.subject}</div>
+      <div class="email-body">${safeBody}</div>
+      <div class="email-actions">
+        <button class="ea-btn ea-copy" onclick="navigator.clipboard?.writeText(${JSON.stringify(rawBody)}).then(()=>showNotif('Email body copied!','#28c4b0'))">
+          <i class="ti ti-copy" style="font-size:10px" aria-hidden="true"></i> Copy
+        </button>
+        <button class="ea-btn ea-regen" onclick="document.getElementById('epreview-${id}').classList.remove('show');composeEmail('${id}')">
+          <i class="ti ti-refresh" style="font-size:10px" aria-hidden="true"></i> Regenerate
+        </button>
+      </div>`;
+  }catch(e){
+    preview.innerHTML=`<div style="font-size:11px;color:var(--rose2);padding:8px 0">Failed to generate. Check your API key and try again.</div>`;
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+// ══════════════════════════════════════════
+//  ADD LEAD MODAL
+// ══════════════════════════════════════════
+function openModal(){document.getElementById('modal-bg').classList.add('on')}
+function closeModal(){document.getElementById('modal-bg').classList.remove('on')}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+function saveLead(){
+  const fn=document.getElementById('mfn').value.trim();
+  const em=document.getElementById('mem').value.trim();
+  if(!fn||!em){showNotif('First name and email are required','#cc8030');return}
+  const nt=document.getElementById('mnt').value.trim();
+  const lead={
+    id:uid(),fn,ln:document.getElementById('mln').value.trim(),
+    em,ph:document.getElementById('mph').value.trim(),
+    co:document.getElementById('mco').value.trim(),
+    src:document.getElementById('msr').value,
+    val:Math.max(0,parseInt(document.getElementById('mdv').value)||0),
+    status:'new',date:new Date().toISOString().split('T')[0],
+    notes:nt?[{id:uid(),txt:nt,date:new Date().toISOString().split('T')[0],ai:false,fu:false}]:[]
+  };
+  leads.unshift(lead);
+  closeModal();
+  ['mfn','mln','mem','mph','mco','mdv','mnt'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=''});
+  selId=lead.id;
+  renderView();
+  if(curView==='leads') setTimeout(()=>showDetail(lead.id),80);
+  showNotif(`${fn} ${lead.ln||''} added as a new lead`,'#c9a84c');
+}
+
+// ══════════════════════════════════════════
+//  FILTER
+// ══════════════════════════════════════════
+function setF(s,btn){
+  filterS=s;
+  document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('act'));
+  btn.classList.add('act');
+  renderList();
+}
+
+// ══════════════════════════════════════════
+//  ANALYTICS VIEW
+// ══════════════════════════════════════════
+function renderAnalyticsView(c){
+  const total=leads.length;
+  const nw=leads.filter(l=>l.status==='new').length;
+  const ct=leads.filter(l=>l.status==='contacted').length;
+  const cv=leads.filter(l=>l.status==='converted').length;
+  const lt=leads.filter(l=>l.status==='lost').length;
+  const rate=total?Math.round(cv/total*100):0;
+  const tv=leads.reduce((a,l)=>a+(l.val||0),0);
+  const cv_val=leads.filter(l=>l.status==='converted').reduce((a,l)=>a+(l.val||0),0);
+
+  const srcC={};
+  leads.forEach(l=>{srcC[l.src]=(srcC[l.src]||0)+1});
+  const srcTop=Object.entries(srcC).sort((a,b)=>b[1]-a[1]);
+  const maxSrc=srcTop[0]?.[1]||1;
+
+  const pipeVal=[
+    {s:'New',   v:leads.filter(l=>l.status==='new').reduce((a,l)=>a+(l.val||0),0),       c:'var(--blue2)'},
+    {s:'Contacted',v:leads.filter(l=>l.status==='contacted').reduce((a,l)=>a+(l.val||0),0),c:'var(--amber2)'},
+    {s:'Converted',v:cv_val,                                                               c:'var(--green2)'},
+    {s:'Lost',  v:leads.filter(l=>l.status==='lost').reduce((a,l)=>a+(l.val||0),0),       c:'var(--rose2)'},
+  ];
+  const maxPip=Math.max(...pipeVal.map(x=>x.v))||1;
+
+  c.innerHTML=`
+    <div class="panel" style="overflow:hidden">
+      <div class="panel-head">
+        <h2 class="panel-title">Analytics</h2>
+        <div class="panel-actions">
+          <button class="tb-btn" onclick="setView('leads',document.querySelectorAll('.snav')[0])">
+            <i class="ti ti-arrow-left" style="font-size:11px" aria-hidden="true"></i> Back to Leads
+          </button>
+        </div>
+      </div>
+      <div class="analytics" id="analytics-body">
+        <div class="an-row">
+          <div class="an-card"><div class="an-label">Total Leads</div><div class="an-val" style="color:var(--gold2)">${total}</div><div class="an-sub">All time</div></div>
+          <div class="an-card"><div class="an-label">Conversion Rate</div><div class="an-val" style="color:var(--green2)">${rate}%</div><div class="an-sub">${cv} converted</div></div>
+          <div class="an-card"><div class="an-label">Total Pipeline</div><div class="an-val" style="color:var(--blue2)">$${(tv/1000).toFixed(1)}k</div><div class="an-sub">Across all leads</div></div>
+          <div class="an-card"><div class="an-label">Closed Revenue</div><div class="an-val" style="color:var(--teal2)">$${(cv_val/1000).toFixed(1)}k</div><div class="an-sub">Converted deals</div></div>
+        </div>
+        <div class="chart-2col">
+          <div class="chart-card" style="animation-delay:.22s">
+            <div class="cc-title">Status breakdown</div>
+            <div class="donut-wrap">
+              <div style="position:relative;width:100px;height:100px;flex-shrink:0">
+                <canvas id="donut-chart" width="100" height="100" role="img" aria-label="Lead status: ${nw} new, ${ct} contacted, ${cv} converted, ${lt} lost">${nw} new, ${ct} contacted, ${cv} converted, ${lt} lost.</canvas>
+              </div>
+              <div class="donut-legend">
+                ${[['New',nw,'#5aa0f0'],['Contacted',ct,'#e8a050'],['Converted',cv,'#42bc7e'],['Lost',lt,'#ef7088']].map(([n,v,col])=>`
+                <div class="dl-row">
+                  <div class="dl-dot" style="background:${col}"></div>
+                  <span class="dl-name">${n}</span>
+                  <span class="dl-pct">${v} (${total?Math.round(v/total*100):0}%)</span>
+                </div>`).join('')}
+              </div>
+            </div>
+          </div>
+          <div class="chart-card" style="animation-delay:.28s">
+            <div class="cc-title">Top lead sources</div>
+            <div class="bar-chart">
+              ${srcTop.slice(0,5).map(([n,v],i)=>`
+              <div class="bc-row" style="animation-delay:${.28+i*.07}s">
+                <div class="bc-label" title="${n}">${n}</div>
+                <div class="bc-bar-wrap">
+                  <div class="bc-bar" style="width:${Math.round(v/maxSrc*100)}%;--w:${Math.round(v/maxSrc*100)}%;background:${COLORS[i]};animation-delay:${.28+i*.07}s"></div>
+                </div>
+                <div class="bc-val">${v}</div>
+              </div>`).join('')}
+            </div>
+          </div>
+        </div>
+        <div class="chart-card" style="animation-delay:.34s">
+          <div class="cc-title">Pipeline value by stage ($)</div>
+          <div class="bar-chart">
+            ${pipeVal.map((p,i)=>`
+            <div class="bc-row" style="animation-delay:${.34+i*.07}s">
+              <div class="bc-label">${p.s}</div>
+              <div class="bc-bar-wrap">
+                <div class="bc-bar" style="width:${Math.round(p.v/maxPip*100)}%;--w:${Math.round(p.v/maxPip*100)}%;background:${p.c};animation-delay:${.34+i*.07}s"></div>
+              </div>
+              <div class="bc-val" style="width:48px">$${(p.v/1000).toFixed(1)}k</div>
+            </div>`).join('')}
+          </div>
+        </div>
+        <div class="chart-card" style="animation-delay:.4s">
+          <div class="cc-title">Monthly leads trend</div>
+          <div style="position:relative;height:160px">
+            <canvas id="trend-chart" role="img" aria-label="Monthly leads trend for the last 6 months">Leads per month over 6 months.</canvas>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  setTimeout(()=>buildCharts(nw,ct,cv,lt),80);
+}
+
+function buildCharts(nw,ct,cv,lt){
+  Object.values(chartInst).forEach(ch=>{try{ch.destroy()}catch(e){}});
+  chartInst={};
+  const dc=document.getElementById('donut-chart');
+  if(dc){
+    chartInst.donut=new Chart(dc,{
+      type:'doughnut',
+      data:{labels:['New','Contacted','Converted','Lost'],datasets:[{data:[nw,ct,cv,lt],backgroundColor:['#3a7fcc','#cc8030','#2e9460','#d4546a'],borderColor:'#141416',borderWidth:3,hoverOffset:6}]},
+      options:{responsive:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw}`}}}}
+    });
+  }
+  const tc=document.getElementById('trend-chart');
+  if(tc){
+    chartInst.trend=new Chart(tc,{
+      type:'line',
+      data:{labels:['Jan','Feb','Mar','Apr','May','Jun'],datasets:[{label:'Leads added',data:[2,3,4,3,5,leads.length],borderColor:'#c9a84c',backgroundColor:'rgba(201,168,76,.07)',borderWidth:2,pointBackgroundColor:'#c9a84c',pointRadius:4,pointHoverRadius:6,tension:.4,fill:true}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5c5a6a',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5c5a6a',font:{size:10},stepSize:1},min:0}}}
+    });
+  }
+}
+
+// ══════════════════════════════════════════
+//  PIPELINE KANBAN
+// ══════════════════════════════════════════
+function renderPipelineView(c){
+  const cols=[
+    {s:'new',      label:'New',       color:'var(--blue2)'},
+    {s:'contacted',label:'Contacted', color:'var(--amber2)'},
+    {s:'converted',label:'Converted', color:'var(--green2)'},
+    {s:'lost',     label:'Lost',      color:'var(--rose2)'},
+  ];
+  c.innerHTML=`
+    <div class="panel" style="overflow:hidden">
+      <div class="panel-head">
+        <h2 class="panel-title">Pipeline Board</h2>
+        <div class="panel-actions">
+          <button class="btn-add" onclick="openModal()"><i class="ti ti-plus" aria-hidden="true" style="font-size:12px"></i>New Lead</button>
+        </div>
+      </div>
+      <div class="kanban" id="kanban">
+        ${cols.map(col=>{
+          const cl=leads.filter(l=>l.status===col.s);
+          const tv=cl.reduce((a,l)=>a+(l.val||0),0);
+          return`<div class="kol">
+            <div class="kol-head">
+              <div class="kol-title">
+                <span style="width:8px;height:8px;border-radius:50%;background:${col.color};flex-shrink:0;display:inline-block"></span>
+                ${col.label}
+              </div>
+              <span class="kol-count">${cl.length}</span>
+            </div>
+            ${tv?`<div style="font-size:10px;color:var(--txt3);padding:2px 2px 0">$${tv.toLocaleString()} pipeline</div>`:''}
+            ${cl.length?cl.map((l,i)=>`
+              <div class="kcard" onclick="selId='${l.id}';setView('leads',document.querySelectorAll('.snav')[0])" style="animation-delay:${i*.05}s">
+                <div class="kcard-name">
+                  <div style="width:22px;height:22px;border-radius:50%;background:${gc(l.fn)}1a;color:${gc(l.fn)};display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0">${ini(l)}</div>
+                  ${l.fn} ${l.ln}
+                </div>
+                <div class="kcard-email">${l.em}</div>
+                <div class="kcard-foot">
+                  <span>${l.src}</span>
+                  <span style="display:flex;align-items:center;gap:5px">
+                    ${l.val?`<span style="color:var(--green2)">$${l.val.toLocaleString()}</span>`:''}
+                    ${l.notes.length?`<span style="display:flex;align-items:center;gap:2px;color:var(--txt3)"><i class="ti ti-notes" style="font-size:9px" aria-hidden="true"></i>${l.notes.length}</span>`:''}
+                  </span>
+                </div>
+              </div>`).join(''):`<div style="font-size:11px;color:var(--txt4);padding:14px 6px;text-align:center;border:1px dashed var(--brd);border-radius:var(--r);margin-top:4px">No leads here</div>`}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+//  EXPORT CSV
+// ══════════════════════════════════════════
+function exportCSV(){
+  const rows=[['Name','Email','Phone','Company','Source','Status','Deal Value ($)','Date Added','Notes Count','Notes']];
+  leads.forEach(l=>rows.push([
+    `${l.fn} ${l.ln}`,l.em,l.ph,l.co,l.src,l.status,l.val||0,l.date,l.notes.length,
+    l.notes.map(n=>n.txt).join(' | ')
+  ]));
+  const csv=rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download='ledger-crm-leads.csv';
+  a.click();
+  showNotif(`${leads.length} leads exported as CSV`,'#c9a84c');
+}
+
+// ══════════════════════════════════════════
+//  NOTIFICATION
+// ══════════════════════════════════════════
+let notifT;
+function showNotif(msg,color){
+  clearTimeout(notifT);
+  const el=document.getElementById('notif');
+  const inner=document.getElementById('notif-inner');
+  inner.style.borderLeft=`3px solid ${color}`;
+  inner.innerHTML=`<i class="ti ti-check-circle" style="color:${color};font-size:16px" aria-hidden="true"></i><span>${msg}</span>`;
+  el.style.display='block';
+  notifT=setTimeout(()=>{el.style.display='none'},3000);
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
+  if(apiKey) updateApiStatus();
+  renderView();
+});
+</script>
+</body>
+</html>
